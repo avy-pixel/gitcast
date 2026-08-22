@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitCast — Your PRs, now in your ears.</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo"><i class="fa-solid fa-podcast"></i> GitCast</div>
+    <div class="nav-status">
+      <span class="badge"><span class="dot"></span> GitCast 2.0 is Live</span>
+    </div>
+  </header>
+  <section class="hero-section">
+    <div class="hero-badge"><span class="dot"></span> GitCast 2.0 is Live</div>
+    <h1>Your PRs, now in your <span class="highlight">ears.</span></h1>
+    <p class="hero-subtitle">
+      Turn complex code reviews into engaging two-speaker podcasts. Perfect for your morning commute or focused listening.
+    </p>
+    <div class="hero-input-box">
+      <input type="text" id="pr-url" placeholder="Paste GitHub PR URL (e.g. github.com/owner/repo/pull/12)">
+      <button id="generate-btn" class="btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Start Listening</button>
+      <button id="demo-btn" class="btn-secondary"><i class="fa-solid fa-play"></i> View Demo</button>
+    </div>
+
+    <div id="error-message" class="error-toast" style="display: none;"></div>
+  </section>
+  <section class="player-container">
+    <div class="player-card">
+      <div class="pr-icon"><i class="fa-solid fa-code-pull-request"></i></div>
+      <h3 id="pr-title">PR #124: Refactor Auth Middleware</h3>
+      <p class="pr-author" id="pr-author">Alex & Jordan (AI Hosts)</p>
+      <div class="visualizer-box">
+        <canvas id="visualizer-canvas"></canvas>
+      </div>
+      <div class="player-controls">
+        <button id="speed-btn" class="icon-btn">1.0x</button>
+        <button id="play-btn" class="play-main-btn"><i class="fa-solid fa-play"></i></button>
+        <button id="mute-btn" class="icon-btn"><i class="fa-solid fa-volume-high"></i></button>
+      </div>
+
+      <div class="time-bar">
+        <span id="current-time">00:00</span>
+        <input type="range" id="seek-bar" value="0" min="0" max="100">
+        <span id="total-duration">00:00</span>
+      </div>
+
+      <audio id="audio-element" crossorigin="anonymous" preload="metadata"></audio>
+    </div>
+    <div class="transcript-drawer">
+      <h4><i class="fa-solid fa-align-left"></i> Live Transcript</h4>
+      <div id="transcript-box" class="transcript-box">
+        <p class="placeholder-text">Click "Start Listening" or "View Demo" to render transcript...</p>
+      </div>
+    </div>
+  </section>
+  <section class="how-it-works">
+    <h2>How it works</h2>
+    <p class="section-subtitle">From pull request to podcast in three simple steps.</p>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-icon"><i class="fa-solid fa-arrows-rotate"></i></div>
+        <h3>Sync</h3>
+        <p>Connect your GitHub repos. We securely access your PR diffs, comments, and commit history.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
+        <h3>Analyze</h3>
+        <p>Our AI models parse the code changes, understand the logic, and synthesize the context.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-icon"><i class="fa-solid fa-podcast"></i></div>
+        <h3>Cast</h3>
+        <p>Generate a concise, 2-minute engaging two-speaker podcast summarizing the review.</p>
+      </div>
+    </div>
+  </section>
+  <footer class="footer">
+    <p class="footer-label">LOVED BY DEVELOPERS AT</p>
+    <div class="brand-logos">
+      <span>GitHub</span>
+      <span>Vercel</span>
+      <span>Stripe</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
