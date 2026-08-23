@@ -1,0 +1,14 @@
+body {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+}
+h2 { margin-bottom: 20px; }
+audio { width: 100%; margin-bottom: 24px; }
+.line { margin: 0 0 12px; line-height: 1.5; }
+.line strong { color: #10b981; }
+.status { color: #8b949e; font-style: italic; }
+.error { color: #f85149; }

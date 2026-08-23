@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Entry point for the `gh cast` extension.
+# gh invokes this file directly, so it must be executable and named
+# exactly `gh-cast` (no extension) to match the repo name `gh-cast`.
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$DIR/src/main.py" "$@"
