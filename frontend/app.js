@@ -24,7 +24,7 @@ let animationFrameId;
 
 const playbackSpeeds = [1.0, 1.25, 1.5, 2.0];
 let currentSpeedIndex = 0;
-const BACKEND_API_URL = "http://localhost:8000/api/generate";
+const BACKEND_API_URL = "http://gitcast-4.onrender.com/api/generate";
 // 1. HARDCODED DEMO DATA (ZERO-FAIL BACKUP)
 const samplePodcast = {
   title: "PR #124: Refactor Auth Middleware",
