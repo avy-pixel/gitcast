@@ -78,8 +78,10 @@ def fetch_github_diff(pr_url: str) -> str:
     response = requests.get(api_url, headers=headers, timeout=10)
  
     if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Failed to fetch PR diff from GitHub.")
- 
+        raise HTTPException(
+            status_code=400,
+            detail=f"GitHub returned {response.status_code}: {response.text[:500]}"
+    )
     return response.text[:4000]
  
  
