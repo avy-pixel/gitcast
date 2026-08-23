@@ -72,7 +72,10 @@ def fetch_github_diff(pr_url: str) -> str:
     api_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
  
     headers = {"Accept": "application/vnd.github.v3.diff"}
-    response = requests.get(api_url, headers=headers)
+    token = os.getenv("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"token {token}"
+    response = requests.get(api_url, headers=headers, timeout=10)
  
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to fetch PR diff from GitHub.")
@@ -176,7 +179,10 @@ async def generate_audio_file(transcript: List[dict]) -> str:
     for item in transcript:
         voice = SENIOR_VOICE if item["speaker"] == "Senior" else JUNIOR_VOICE
         part_path = os.path.join(AUDIO_DIR, f"_part_{uuid.uuid4().hex[:8]}.mp3")
-        await _synthesize_line(item["text"], voice, part_path)
+        try:
+          await _synthesize_line(item["text"], voice, part_path)
+        except Exception as e:
+            print(f"Error occurred while synthesizing line: {e}")
         part_files.append(part_path)
 
     # Properly merge using pydub (correct MP3 concatenation, not raw byte-paste)
