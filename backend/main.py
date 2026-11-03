@@ -123,6 +123,35 @@ def fetch_github_diff(pr_url: str) -> str:
 # ==========================================
 # HELPER 2: GENERATE DIALOGUE SCRIPT (Groq, free)
 # ==========================================
+def get_best_available_model(client: Groq) -> str:
+    """Detects the best available chat model from Groq dynamically."""
+    env_model = os.getenv("GROQ_MODEL")
+    if env_model:
+        return env_model
+
+    preferred_models = [
+        "llama-3.1-8b-instant",
+        "llama3-70b-8192",
+        "llama3-8b-8192",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it"
+    ]
+
+    try:
+        models_data = client.models.list()
+        available_ids = [m.id for m in models_data.data if getattr(m, 'active', True)]
+        for pref in preferred_models:
+            if pref in available_ids:
+                return pref
+        for mid in available_ids:
+            if any(k in mid.lower() for k in ["llama", "mixtral", "gemma"]):
+                return mid
+    except Exception as e:
+        print(f"Could not query Groq models: {e}")
+
+    return "llama-3.1-8b-instant"
+
+
 def generate_podcast_script(diff_text: str) -> List[dict]:
     """Generates a 2-speaker conversation script using Groq's free Llama model."""
     client = get_groq_client()
@@ -141,7 +170,7 @@ def generate_podcast_script(diff_text: str) -> List[dict]:
         "Senior: <text>\nJunior: <text>"
     )
  
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model_name = get_best_available_model(client)
     try:
         response = client.chat.completions.create(
             model=model_name,
