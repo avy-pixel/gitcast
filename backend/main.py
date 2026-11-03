@@ -34,14 +34,14 @@ AUDIO_DIR = os.path.join(STATIC_DIR, "audio")
 os.makedirs(AUDIO_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
  
-# Safe Groq client initialization (free tier, no billing needed)
-groq_api_key = os.getenv("GROQ_API_KEY")
-client = None
-if groq_api_key:
+def get_groq_client():
+    api_key = (os.getenv("GROQ_API_KEY") or "").strip().strip('"').strip("'")
+    if not api_key:
+        return None
     try:
-        client = Groq(api_key=groq_api_key)
+        return Groq(api_key=api_key)
     except Exception:
-        pass
+        return None
  
 # Two distinct edge-tts voices for a 2-speaker effect
 SENIOR_VOICE = "en-US-GuyNeural"
@@ -125,10 +125,11 @@ def fetch_github_diff(pr_url: str) -> str:
 # ==========================================
 def generate_podcast_script(diff_text: str) -> List[dict]:
     """Generates a 2-speaker conversation script using Groq's free Llama model."""
+    client = get_groq_client()
     if not client:
         raise HTTPException(
             status_code=500,
-            detail="Groq API key is missing. Please set the GROQ_API_KEY environment variable in your .env file."
+            detail="Groq API key is missing. Please set the GROQ_API_KEY environment variable in Render."
         )
  
     system_prompt = (
@@ -140,14 +141,24 @@ def generate_podcast_script(diff_text: str) -> List[dict]:
         "Senior: <text>\nJunior: <text>"
     )
  
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Here is the Git Diff:\n\n{diff_text}"}
-        ],
-        temperature=0.7
-    )
+    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Here is the Git Diff:\n\n{diff_text}"}
+            ],
+            temperature=0.7
+        )
+    except Exception as e:
+        err_str = str(e)
+        if "invalid_api_key" in err_str.lower() or "401" in err_str:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid Groq API Key. Please verify your GROQ_API_KEY in Render Environment Variables (get a free key at https://console.groq.com/keys)."
+            )
+        raise HTTPException(status_code=500, detail=f"Groq API error ({model_name}): {err_str[:300]}")
  
     raw_text = response.choices[0].message.content
     transcript = []
