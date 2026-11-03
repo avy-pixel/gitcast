@@ -44,14 +44,14 @@ const getBackendApiUrl = () => {
   }
   // When running on a Render Static Site, point to the backend web service (static sites have no Python API)
   if (window.location.hostname.includes('static')) {
-    return 'https://gitcast-4.onrender.com/api/generate';
+    return 'https://gitcast-backend.onrender.com/api/generate';
   }
   // When frontend is served directly by the backend on Render
   if (window.location.hostname.endsWith('.onrender.com')) {
     return `${window.location.origin}/api/generate`;
   }
   // Default to deployed backend (for standalone Vercel / GitHub Pages deployments)
-  return 'https://gitcast-4.onrender.com/api/generate';
+  return 'https://gitcast-backend.onrender.com/api/generate';
 };
 const BACKEND_API_URL = getBackendApiUrl();
 // 1. HARDCODED DEMO DATA (ZERO-FAIL BACKUP)
