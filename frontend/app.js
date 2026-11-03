@@ -24,7 +24,29 @@ let animationFrameId;
 
 const playbackSpeeds = [1.0, 1.25, 1.5, 2.0];
 let currentSpeedIndex = 0;
-const BACKEND_API_URL = "https://gitcast-4.onrender.com/api/generate";
+// Dynamic API URL resolution:
+// - Local dev: http://localhost:8000/api/generate
+// - Same-host deployment (e.g. Render full-stack): /api/generate
+// - Explicit override: window.GITCAST_API_URL
+// - Fallback production backend URL
+const getBackendApiUrl = () => {
+  if (typeof window !== 'undefined' && window.GITCAST_API_URL) {
+    return window.GITCAST_API_URL;
+  }
+  const isLocal = window.location.hostname === 'localhost' || 
+                  window.location.hostname === '127.0.0.1' || 
+                  window.location.protocol === 'file:';
+  if (isLocal) {
+    return 'http://localhost:8000/api/generate';
+  }
+  // When frontend is served directly by the backend on Render
+  if (window.location.hostname.endsWith('.onrender.com')) {
+    return `${window.location.origin}/api/generate`;
+  }
+  // Default to deployed backend (for standalone Vercel / GitHub Pages deployments)
+  return 'https://gitcast-4.onrender.com/api/generate';
+};
+const BACKEND_API_URL = getBackendApiUrl();
 // 1. HARDCODED DEMO DATA (ZERO-FAIL BACKUP)
 const samplePodcast = {
   title: "PR #124: Refactor Auth Middleware",

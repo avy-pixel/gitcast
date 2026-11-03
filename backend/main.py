@@ -212,6 +212,10 @@ async def generate_podcast(request: Request, pr_url: str = Query(..., descriptio
         audio_relative_url = await generate_audio_file(transcript)
  
         base_url = str(request.base_url).rstrip("/")
+        # Ensure HTTPS scheme when deployed behind reverse proxy (Render, Vercel, etc.)
+        forwarded_proto = request.headers.get("x-forwarded-proto")
+        if forwarded_proto and base_url.startswith("http://"):
+            base_url = "https://" + base_url[len("http://"):]
         audio_full_url = f"{base_url}{audio_relative_url}"
  
         return PodcastResponse(
@@ -222,4 +226,17 @@ async def generate_podcast(request: Request, pr_url: str = Query(..., descriptio
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
- 
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
+# Mount frontend static files if available (serves full UI + API from one single service)
+FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
+if not os.path.exists(FRONTEND_DIR):
+    FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+if os.path.exists(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+
