@@ -67,22 +67,57 @@ def fetch_github_diff(pr_url: str) -> str:
     match = re.search(pattern, pr_url)
     if not match:
         raise HTTPException(status_code=400, detail="Invalid GitHub Pull Request URL.")
- 
+
     owner, repo, pr_number = match.groups()
-    api_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
- 
-    headers = {"Accept": "application/vnd.github.v3.diff"}
     token = os.getenv("GITHUB_TOKEN")
+
+    # Strategy 1: If GITHUB_TOKEN is set, use authenticated GitHub API (5,000 req/hr)
     if token:
-        headers["Authorization"] = f"token {token}"
-    response = requests.get(api_url, headers=headers, timeout=10)
- 
-    if response.status_code != 200:
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+        headers = {
+            "Accept": "application/vnd.github.v3.diff",
+            "Authorization": f"token {token}",
+            "User-Agent": "GitCast/1.0"
+        }
+        try:
+            resp = requests.get(api_url, headers=headers, timeout=10)
+            if resp.status_code == 200 and resp.text.strip():
+                return resp.text[:4000]
+        except Exception:
+            pass
+
+    # Strategy 2: Direct .diff web URL (bypasses GitHub REST API 60 req/hr IP rate limit completely)
+    web_diff_url = f"https://github.com/{owner}/{repo}/pull/{pr_number}.diff"
+    web_headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    try:
+        resp = requests.get(web_diff_url, headers=web_headers, timeout=10, allow_redirects=True)
+        if resp.status_code == 200 and resp.text.strip():
+            return resp.text[:4000]
+    except Exception:
+        pass
+
+    # Strategy 3: Unauthenticated REST API fallback
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+    headers = {
+        "Accept": "application/vnd.github.v3.diff",
+        "User-Agent": "GitCast/1.0"
+    }
+    resp = requests.get(api_url, headers=headers, timeout=10)
+    if resp.status_code == 200 and resp.text.strip():
+        return resp.text[:4000]
+
+    if resp.status_code == 403:
         raise HTTPException(
-            status_code=400,
-            detail=f"GitHub returned {response.status_code}: {response.text[:500]}"
+            status_code=403,
+            detail="GitHub rate limit exceeded on public IP. Please add a GITHUB_TOKEN in Render environment variables or try another PR."
+        )
+
+    raise HTTPException(
+        status_code=400,
+        detail=f"GitHub returned {resp.status_code}: {resp.text[:300]}"
     )
-    return response.text[:4000]
  
  
 # ==========================================
