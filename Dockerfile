@@ -10,7 +10,8 @@ WORKDIR /app
 
 # Copy dependency definition and install packages
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy backend and frontend source trees
 COPY backend/ ./backend/

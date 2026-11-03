@@ -27,17 +27,24 @@ let currentSpeedIndex = 0;
 // Dynamic API URL resolution:
 // - Local dev: http://localhost:8000/api/generate
 // - Same-host deployment (e.g. Render full-stack): /api/generate
-// - Explicit override: window.GITCAST_API_URL
+// - Explicit override: window.GITCAST_API_URL or localStorage.GITCAST_API_URL
 // - Fallback production backend URL
 const getBackendApiUrl = () => {
   if (typeof window !== 'undefined' && window.GITCAST_API_URL) {
     return window.GITCAST_API_URL;
+  }
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('GITCAST_API_URL')) {
+    return localStorage.getItem('GITCAST_API_URL');
   }
   const isLocal = window.location.hostname === 'localhost' || 
                   window.location.hostname === '127.0.0.1' || 
                   window.location.protocol === 'file:';
   if (isLocal) {
     return 'http://localhost:8000/api/generate';
+  }
+  // When running on a Render Static Site, point to the backend web service (static sites have no Python API)
+  if (window.location.hostname.includes('static')) {
+    return 'https://gitcast-4.onrender.com/api/generate';
   }
   // When frontend is served directly by the backend on Render
   if (window.location.hostname.endsWith('.onrender.com')) {
